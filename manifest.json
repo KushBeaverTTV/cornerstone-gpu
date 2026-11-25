@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cornerstone.gpu",
+  "name": "Cornerstone GPU",
+  "version": "1.0.0",
+  "author": "Kush Beaver Productionz",
+  "license": "MIT",
+  "description": "Live VRAM meter in the bar, per-process VRAM breakdown, one-click local AI VRAM reclaim, and Game / Dev Mode toggle.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Cornerstone GPU",
+    "description": "Compact VRAM readout in the bar with per-process VRAM breakdown and one-click VRAM reclaim / Game Mode.",
+    "category": "System",
+    "aliases": [
+      "gpu",
+      "vram",
+      "cornerstone-gpu",
+      "game-mode"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "left",
+    "defaults": {}
+  }
+}
