@@ -192,7 +192,7 @@ Panel {
               id: headTitle
               anchors.left: parent.left
               textFormat: Text.PlainText
-              text: "GPU VRAM" + (root.tempC > 0 ? "  ·  " + Math.round(root.tempC) + "°C" : "")
+              text: (root.gpuName || "GPU VRAM") + (root.tempC > 0 ? "  ·  " + Math.round(root.tempC) + "°C" : "")
               color: root.foreground
               font.family: root.fontFamily
               font.pixelSize: Style.font.body
@@ -202,7 +202,9 @@ Panel {
               anchors.right: parent.right
               anchors.verticalCenter: headTitle.verticalCenter
               textFormat: Text.PlainText
-              text: Gpu.fmtMb(root.usedMb) + " / " + Gpu.fmtMb(root.totalMb) + " (" + root.percent + "%)"
+              text: root.totalMb > 0
+                ? (Gpu.fmtMb(root.usedMb) + " / " + Gpu.fmtMb(root.totalMb) + " (" + root.percent + "%)")
+                : "Unified memory"
               color: root.levelColor
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption
@@ -212,6 +214,7 @@ Panel {
           }
 
           Rectangle {
+            visible: root.totalMb > 0
             width: parent.width
             height: Style.space(10)
             radius: height / 2
@@ -272,9 +275,10 @@ Panel {
           }
         }
 
-        Rectangle { width: parent.width; height: 1; color: root.hairline }
+        Rectangle { visible: root.totalMb > 0; width: parent.width; height: 1; color: root.hairline }
 
         Text {
+          visible: root.totalMb > 0
           textFormat: Text.PlainText
           text: "Top VRAM holders (tap service/app to unload)"
           color: root.muted
@@ -283,6 +287,7 @@ Panel {
         }
 
         Column {
+          visible: root.totalMb > 0
           width: parent.width
           spacing: Style.space(5)
 

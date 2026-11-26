@@ -44,15 +44,21 @@ def unit_exists(unit):
     return any(os.path.exists(os.path.join(d, fname)) for d in UNIT_DIRS)
 
 
-def service_active(unit):
+def batch_services_active(units):
+    if not units:
+        return {}
     try:
         r = subprocess.run(
-            ["systemctl", "--user", "is-active", f"{unit}.service"],
-            capture_output=True, text=True, timeout=1.5
+            ["systemctl", "--user", "is-active", *[f"{u}.service" for u in units]],
+            capture_output=True, text=True, timeout=1.5,
         )
-        return r.stdout.strip() == "active"
+        lines = r.stdout.splitlines()
+        return {
+            u: (lines[i].strip() == "active") if i < len(lines) else False
+            for i, u in enumerate(units)
+        }
     except Exception:
-        return False
+        return {u: False for u in units}
 
 
 def unit_for_pid(pid):
@@ -241,9 +247,20 @@ def main():
     has_local_stt = (not out["unified"]) and (unit_exists("cornerstone-stt-qwen") or unit_exists("cornerstone-stt-gpu"))
     out["hasLocalStt"] = has_local_stt
     out["hasLanMouse"] = has_lan_mouse
-    out["qwenActive"] = False if (BRIEF or not has_local_stt) else service_active("cornerstone-stt-qwen")
-    out["whisperActive"] = False if (BRIEF or not has_local_stt) else service_active("cornerstone-stt-gpu")
-    out["lanMouseActive"] = False if (BRIEF or not has_lan_mouse) else service_active("lan-mouse")
+    if BRIEF:
+        out["qwenActive"] = False
+        out["whisperActive"] = False
+        out["lanMouseActive"] = False
+    else:
+        to_query = []
+        if has_local_stt:
+            to_query.extend(["cornerstone-stt-qwen", "cornerstone-stt-gpu"])
+        if has_lan_mouse:
+            to_query.append("lan-mouse")
+        active = batch_services_active(to_query)
+        out["qwenActive"] = active.get("cornerstone-stt-qwen", False)
+        out["whisperActive"] = active.get("cornerstone-stt-gpu", False)
+        out["lanMouseActive"] = active.get("lan-mouse", False)
     print(json.dumps(out))
 
 
