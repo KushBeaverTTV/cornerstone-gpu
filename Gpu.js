@@ -46,12 +46,19 @@ function parseSnapshot(text) {
       vramMb: Math.max(0, Number(p.vramMb) || 0)
     }
   }) : []
+  var backend = String(d.backend || (totalMb > 0 ? "amd" : "unified")).slice(0, 24)
+  var unified = d.unified === true || (totalMb === 0 && backend === "unified")
   return {
+    backend: backend,
+    gpuName: String(d.gpuName || "").slice(0, 64),
+    unified: unified,
     usedMb: usedMb,
     totalMb: totalMb,
     percent: pct,
     busyPct: Math.min(100, Math.max(0, Number(d.busyPct) || 0)),
     tempC: Number(d.tempC) || 0,
+    hasLocalStt: d.hasLocalStt !== false,
+    hasLanMouse: d.hasLanMouse !== false,
     qwenActive: d.qwenActive === true,
     whisperActive: d.whisperActive === true,
     lanMouseActive: d.lanMouseActive === true,

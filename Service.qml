@@ -14,6 +14,11 @@ Item {
   readonly property string pluginId: "cornerstone.gpu"
   readonly property string probePath: Qt.resolvedUrl("bin/gpu-vram.py").toString().replace(/^file:\/\//, "")
 
+  property string backend: "amd"
+  property string gpuName: ""
+  property bool unified: false
+  property bool hasLocalStt: true
+  property bool hasLanMouse: true
   property real usedMb: 0
   property real totalMb: 0
   property int percent: 0
@@ -41,6 +46,11 @@ Item {
   function apply(text) {
     var snap = Gpu.parseSnapshot(text)
     if (!snap) return
+    backend = snap.backend
+    gpuName = snap.gpuName
+    unified = snap.unified
+    hasLocalStt = snap.hasLocalStt
+    hasLanMouse = snap.hasLanMouse
     usedMb = snap.usedMb
     totalMb = snap.totalMb
     percent = snap.percent

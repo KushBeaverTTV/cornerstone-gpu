@@ -41,6 +41,9 @@ Panel {
     function onAccentChanged() { paletteFile.reload() }
   }
 
+  readonly property string gpuName: service ? service.gpuName : ""
+  readonly property bool unified: service ? service.unified : false
+  readonly property bool hasLocalStt: service ? service.hasLocalStt : true
   readonly property real usedMb: service ? service.usedMb : 0
   readonly property real totalMb: service ? service.totalMb : 0
   readonly property int percent: service ? service.percent : 0
@@ -56,19 +59,21 @@ Panel {
     : (severity === "warn" ? warnColor : (gameMode ? okColor : foreground))
 
   readonly property string barTooltip: totalMb > 0
-    ? "VRAM " + Gpu.fmtMb(usedMb) + " / " + Gpu.fmtMb(totalMb) + " (" + percent + "%)"
+    ? (gpuName ? gpuName + " · " : "") + "VRAM " + Gpu.fmtMb(usedMb) + " / " + Gpu.fmtMb(totalMb) + " (" + percent + "%)"
       + (tempC > 0 ? " · " + Math.round(tempC) + "°C" : "")
       + (gameMode ? " · Game Mode ON" : "")
-    : "GPU VRAM"
+    : (gpuName || "GPU") + (gameMode ? " · Game Mode ON" : " · Unified memory")
 
   property bool watching: false
   property int cursor: -1
   readonly property var quickActions: {
-    var list = [{ id: "gameMode", label: gameMode ? "Game / Godot Mode: ON (click to restore)" : "Game / Godot Mode (unload AI STT + pause LAN Mouse)" }]
-    if (qwenActive || whisperActive)
-      list.push({ id: "freeStt", label: "Unload local STT from GPU (frees ~4.2 GB)" })
-    else
-      list.push({ id: "restoreStt", label: "Start local STT GPU servers" })
+    var list = [{ id: "gameMode", label: gameMode ? "Game / Godot Mode: ON (click to restore)" : (hasLocalStt ? "Game / Godot Mode (unload AI STT + pause LAN Mouse)" : "Game / Focus Mode (pause LAN Mouse)") }]
+    if (hasLocalStt) {
+      if (qwenActive || whisperActive)
+        list.push({ id: "freeStt", label: "Unload local STT from GPU (frees ~4.2 GB)" })
+      else
+        list.push({ id: "restoreStt", label: "Start local STT GPU servers" })
+    }
     return list
   }
 
@@ -116,7 +121,7 @@ Panel {
       Text {
         anchors.verticalCenter: parent.verticalCenter
         textFormat: Text.PlainText
-        text: root.gameMode ? "󰊗" : "VRAM"
+        text: root.gameMode ? "󰊗" : (root.unified ? "GPU" : "VRAM")
         color: root.gameMode ? root.okColor : root.muted
         font.family: root.fontFamily
         font.pixelSize: root.gameMode ? Style.bar.iconFont : Style.font.caption
@@ -124,6 +129,7 @@ Panel {
         renderType: Text.NativeRendering
       }
       Text {
+        visible: !root.unified || root.totalMb > 0
         anchors.verticalCenter: parent.verticalCenter
         textFormat: Text.PlainText
         text: root.totalMb > 0 ? (root.percent + "%") : "--"
